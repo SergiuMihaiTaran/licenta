@@ -1,3 +1,5 @@
+@import "@repay/react-credit-card/dist/react-credit-card.css";
+
 #root {
   max-width: 1280px;
   margin: 0 auto;
@@ -26,7 +28,10 @@
     transform: rotate(360deg);
   }
 }
-
+label,h3,h2,p{
+  user-select: none;
+  cursor: default;
+}
 @media (prefers-reduced-motion: no-preference) {
   a:nth-of-type(2) .logo {
     animation: logo-spin infinite 20s linear;

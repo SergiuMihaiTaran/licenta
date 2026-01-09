@@ -1,26 +1,44 @@
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
-import Home from './components/Home';
-import Login from './components/Login';
-import Register from './components/Register';
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
-
+import AddCard from "./components/AddCard/AddCard";
+import Home from "./components/Home/Home";
+import Login from "./components/Login/Login";
+import ProtectedRoute from "./ProtectedRouter";
+import Register from "./components/Register/Register";
+import MakePayment from "./components/MakePayment/MakePayment";
 function App() {
-
   return (
-    <BrowserRouter>
-      <nav>
-        <Link to="/">Home</Link> | 
-        <Link to="/register">Register</Link> | 
-        <Link to="/login">Login</Link>
-      </nav>
-
+    <Router>
       <Routes>
-        <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        
+        <Route 
+          path="/" 
+          element={
+            <ProtectedRoute>
+              <Home />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/makePayment" 
+          element={
+            <ProtectedRoute>
+              <MakePayment />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/addCard" 
+          element={
+            <ProtectedRoute>
+              <AddCard />
+            </ProtectedRoute>
+          } 
+        />
       </Routes>
-    </BrowserRouter>
+    </Router>
   );
 }
-
-export default App
+export default App;

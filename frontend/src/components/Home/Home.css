@@ -1,0 +1,39 @@
+.card{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+.loading{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 200px;
+}
+.card-preview, .card-details{
+    display: flex;
+    margin-top: 50px;
+    justify-content:center;
+    margin-top: 50px;
+    align-items: center;
+    flex-direction: column;
+}
+button{
+    margin-top: 10px;
+    width:50%;
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: blueviolet;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.onlyCard{
+    cursor: pointer;
+    
+}
+.onlyCard:hover{
+    transform: scale(1.05);
+    transition: transform 0.3s;
+}
