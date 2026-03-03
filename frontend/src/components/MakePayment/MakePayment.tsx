@@ -47,11 +47,15 @@ function MakePayment() {
                     name="Types"
                     id="types-select">
                     <option disabled value="">Type</option>
-                    <option value="Utility">Utility</option>
-                    <option value="Transport">Transport</option>
-                    <option value="Entertainment">Entertainment</option>
-                    <option value="Food">Food</option>
-                    <option value="Rent">Rent</option>
+                    <option value="Food & Dining">Food & Dining</option>
+                    <option value="Shopping & Retail">Shopping & Retail</option>
+                    <option value="Utilities & Services">Utilities & Services</option>
+                    <option value="Entertainment & Travel">Entertainment & Travel</option>
+                    <option value="Transportation">Transportation</option>
+                    <option value="Health & Wellness">Health & Wellness</option>
+                    <option value="Home & Garden">Home & Garden</option>
+                    <option value="Electronics & Tech">Electronics & Tech</option>
+                    <option value="Industrial & Business">Industrial & Business</option>
                     <option value="Other">Other</option>
                 </select>
                 <button type="submit">Pay Now</button>

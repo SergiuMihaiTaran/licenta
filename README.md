@@ -36,3 +36,10 @@ Un Pie Chart cu cheltuieli pe o luna si tipul acestora
 Blocare card 
 
 Istoric tranzactii 
+Silhouette Score pentru k=2: 0.3862
+Silhouette Score pentru k=3: 0.1989
+Silhouette Score pentru k=4: 0.2031
+Silhouette Score pentru k=5: 0.2117
+Silhouette Score pentru k=6: 0.2113
+Silhouette Score pentru k=7: 0.1737
+Silhouette Score pentru k=8: 0.1569

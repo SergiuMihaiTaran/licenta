@@ -20,6 +20,7 @@ function Register() {
             phone: data.phone,
             email: data.email,
             password: data.password,
+            creditScore: data.creditScore,
         };
             try {
             const response = await axios.post("http://localhost:8000/register", userData);
@@ -59,8 +60,11 @@ function Register() {
                     placeholder="Phone Number"
                 />
                 {errors.phone && <span style={{ color: "red" }}>*Phone Number* is mandatory</span>}
-
-
+                <input
+                    type="number"
+                    {...register("creditScore", { required: false })}
+                    placeholder="Credit Score"
+                />
                 <input
                     type="password"
                     {...register("password", { required: true })}

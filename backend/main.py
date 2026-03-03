@@ -1,16 +1,20 @@
 from asyncio import sleep
+
 from fastapi import FastAPI, HTTPException
 from fastapi.params import Depends
+import numpy as np
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from RecomandationSystem.KNNClasification import get_neighbor_spending, get_neighbor_spending
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
+import pandas as pd
+from RecomandationSystem.loadDataset import  generate_category_recommendations, loadDataset, get_KMeans_recommandations
 import sqlalchemy
+import joblib
 from faker import Faker 
 fake=Faker()
 
-
-
-from sqlalchemy import create_engine, Column, String,Integer,ForeignKey,Float,delete,DateTime,Numeric
+from sqlalchemy import create_engine, Column, String,Integer,ForeignKey,Float,delete,DateTime,Numeric,Date
 from sqlalchemy.sql import func
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
@@ -19,6 +23,13 @@ import jwt
 secret="secret"
 algorithm="HS256"
 
+def get_age_from_dateOfBirth(dob_str):
+    age = 0
+    if dob_str:
+        from datetime import date
+        today = date.today()
+        age = today.year - dob_str.year - ((today.month, today.day) < (dob_str.month, dob_str.day))
+    return age
 def generate_iban_ro():
     # Generează un IBAN de România valid matematic
     iban= fake.iban()
@@ -39,6 +50,10 @@ class UserDB(Base):
     email = Column(String,unique=True)
     phone = Column(String)
     password = Column(String)
+    credit_score = Column(Integer, default=0)
+    debt=Column(Float, default=0)
+    date_of_birth = Column(Date, nullable=True)
+    yearly_income=Column(Float, default=0)
     cards = relationship("CardDB", back_populates="owner")
 class CardDB(Base):
     __tablename__ = "cards"
@@ -83,6 +98,7 @@ class PaymentDetails(BaseModel):
 class UserCreate(BaseModel):
     phone: str
     email: str
+    credit_score: str
     password: str
 class CardInfo(BaseModel):
     name: str
@@ -208,7 +224,18 @@ def getTypeId(type_name: str) -> int:
     return payment_type.id
 def populate_payment_types():
     db = SessionLocal()
-    types = ["Utility", "Rent", "Food", "Entertainment", "Transport","Other"]
+    types = [
+    "Food & Dining",
+    "Shopping & Retail", 
+    "Health & Wellness",
+    "Transportation",
+    "Utilities & Services",
+    "Entertainment & Travel",
+    "Home & Garden",
+    "Electronics & Tech",
+    "Industrial & Business",
+    "Other"
+]
     for type_name in types:
         existing_type = db.query(PaymentTypeDB).filter(PaymentTypeDB.name == type_name).first()
         if not existing_type:
@@ -216,27 +243,53 @@ def populate_payment_types():
             db.add(new_type)
     db.commit()
     db.close()
+import random
+from datetime import date, timedelta
+
 def populate_with_users_and_cards():
     db = SessionLocal()
     for i in range(5):
         email = f"user{i}@example.com"
         password = f"password{i}"
-        user = UserDB(email=email, password=password)
+        
+        # Generăm date de test variate pentru a avea clustere interesante
+        # Scor credit între 300 și 850
+        test_credit_score = random.randint(400, 820)
+        # Venit anual între 20.000 și 150.000
+        test_income = random.uniform(25000, 120000)
+        # Datorii între 0 și 50.000
+        test_debt = random.uniform(0, 40000)
+        # Data nașterii (vârsta între 20 și 65 ani)
+        days_ago = random.randint(365*20, 365*65)
+        test_dob = date.today() - timedelta(days=days_ago)
+
+        user = UserDB(
+            email=email, 
+            password=password,
+            phone=f"0722{random.randint(100000, 999999)}",
+            credit_score=test_credit_score,
+            yearly_income=test_income,
+            debt=test_debt,
+            date_of_birth=test_dob
+        )
+        
         db.add(user)
-        db.commit()
+        db.commit() # Commit aici pentru a genera user.id
+
         card = CardDB(
             user_id=user.id,
-            name=f"Card {i}",
-            number=f"123456789012345{i}",
-            balance=1000.0,
-            expiration="12/25",
-            cvc="123",
+            name=f"Card Premium {i}" if test_credit_score > 700 else f"Card Standard {i}",
+            number=f"424212345678901{i}",
+            balance=random.uniform(1000.0, 5000.0),
+            expiration="12/28",
+            cvc=str(random.randint(100, 999)),
             iban=generate_iban_ro()
         )
         db.add(card)
+    
     db.commit()
     db.close()
-# Add this to main.py
+    print("Baza de date a fost populată cu succes cu profiluri hibride (Demografice + Carduri).")
 @app.get("/card")
 async def get_card_full_info(auth: HTTPAuthorizationCredentials = Depends(security)):
     token = auth.credentials
@@ -248,7 +301,6 @@ async def get_card_full_info(auth: HTTPAuthorizationCredentials = Depends(securi
         db.close()
         raise HTTPException(status_code=404, detail="Card not found")
         
-    # Return all details including CVC and Expiration
     result = {
         "name": card.name,
         "number": card.number,
@@ -259,5 +311,112 @@ async def get_card_full_info(auth: HTTPAuthorizationCredentials = Depends(securi
     }
     db.close()
     return result
-# populate_with_users_and_cards()
+def insert_test_payments(user_id: int):
+    db = SessionLocal()
+    card = db.query(CardDB).filter(CardDB.user_id == user_id).first()
+    if not card:
+        print("Utilizatorul nu are card, nu putem insera plăți.")
+        return
+    test_data = [
+        {"amount": 150.75, "type": "Food & Dining"},
+        {"amount": 45.00,  "type": "Food & Dining"},
+        {"amount": 300.00, "type": "Transportation"},
+        {"amount": 20.00,  "type": "Shopping & Retail"},
+    ]
+
+    for item in test_data:
+        type_id = getTypeId(item["type"]) # Folosim funcția ta existentă
+        
+        new_payment = PaymentDB(
+            user_id=user_id,
+            amount=item["amount"],
+            ibanFrom=card.iban,
+            ibanTo=generate_iban_ro(), # Destinație random
+            typeId=type_id
+        )
+        db.add(new_payment)
+        
+    db.commit()
+    print(f"Am inserat {len(test_data)} tranzacții pentru user {user_id}")
+    db.close()
+def get_user_profile(user_id):
+    db = SessionLocal()
+    try:
+        user = db.query(UserDB).filter(UserDB.id == user_id).first()
+        if not user:
+            return None
+        age= get_age_from_dateOfBirth(user.date_of_birth)
+        query = (
+            db.query(
+                PaymentTypeDB.name.label("category"),
+                func.sum(PaymentDB.amount).label("total_amount")
+            )
+            .join(PaymentTypeDB, PaymentDB.typeId == PaymentTypeDB.id)
+            .filter(PaymentDB.user_id == user_id)
+            .group_by(PaymentTypeDB.name)
+            .all()
+        )
+        
+        profile = {
+            "current_age": age if age > 0 else 30, 
+            "yearly_income": float(user.yearly_income),
+            "total_debt": float(user.debt),
+            "credit_score": int(user.credit_score)
+        }
+        for category, total in query:
+            profile[category] = float(total)
+            
+        return profile
+    finally:
+        db.close()
+
+
+def get_knn_recommendations(user_id):
+    global matrix
+    matrix = loadDataset(user_id)
+    user_profile = get_user_profile(user_id)
+    
+    print(f"Profilul de cheltuieli pentru user {user_id}: {user_profile}")
+    if not user_profile:
+        print("Userul nu are tranzacții.")
+        return []
+    allowed_columns = [col for col in matrix.columns if col not in ['cluster_id', 'client_id']]
+    user_vector = [user_profile.get(col, 0.0) for col in allowed_columns]
+    print(f"DEBUG: Vectorul final are {len(user_vector)} dimensiuni: {user_vector}")
+    user_vector_np = np.array(user_vector).astype(float).reshape(1, -1)
+    mean_val = np.mean(user_vector_np)
+    normalized_user_vector = user_vector_np - mean_val
+    neighbors = get_neighbor_spending(normalized_user_vector)
+    
+    print(f"Vecinii găsiți pentru userul {user_id}: {neighbors}")
+    print(f"Categorii recomandate pentru userul {user_id}:")
+    print(generate_category_recommendations(user_id, neighbors))
+    return neighbors
+def get_kmeans_recommendations(user_id):
+    global matrix
+    profile = get_user_profile(user_id)
+    if not profile:
+        print("Userul nu are date suficiente.")
+        return []
+    features = [col for col in matrix.columns if col != 'cluster_id']
+    user_vector = []
+    for col in features:
+        user_vector.append(profile.get(col, 0.0))
+    user_vector_np = np.array(user_vector).reshape(1, -1)
+    similar_users = get_KMeans_recommandations(user_vector_np)
+    print(f"Categorii recomandate pentru userul {user_id}:")
+    print(generate_category_recommendations(user_id, similar_users))
+    return similar_users
+def get_recommendations_for_user(user_id):
+    print("KNN Recommendations:")
+    KnnRecomandations = get_knn_recommendations(user_id)
+    print("KMeans Recommendations:")
+    KMeans=get_kmeans_recommendations(user_id)
+    print(KnnRecomandations)
+    print(KMeans)
+
 # populate_payment_types()
+# populate_with_users_and_cards()
+# insert_test_payments(1)
+
+get_recommendations_for_user(1)
