@@ -8,7 +8,7 @@ from RecomandationSystem.KNNClasification import get_neighbor_spending, get_neig
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 import pandas as pd
-from RecomandationSystem.loadDataset import  generate_category_recommendations, loadDataset, get_KMeans_recommandations
+from RecomandationSystem.loadDataset import  generate_category_recommendations, loadDataset, get_KMeans_recommandations, print_neighbor_spending_from_df
 import sqlalchemy
 import joblib
 from faker import Faker 
@@ -122,7 +122,7 @@ async def register(user: UserCreate):
         db.close()
         raise HTTPException(status_code=400, detail="Email already registered")
     
-    new_user = UserDB(phone=user.phone, email=user.email, password=user.password)
+    new_user = UserDB(phone=user.phone, email=user.email, password=user.password,credit_score=int(user.credit_score))
     db.add(new_user)
     db.commit()
     db.close()
@@ -181,6 +181,14 @@ async def get_card_minimal_info(auth: HTTPAuthorizationCredentials = Depends(sec
     result = {"balance": cards.balance, "name": cards.name, "number": cards.number[-4:]} if cards else {}
     db.close()
     return result
+@app.get("/recommendations")
+async def get_recommendations(auth: HTTPAuthorizationCredentials = Depends(security)):
+    token = auth.credentials
+    user_id = jwt.decode(token, secret, algorithms=[algorithm])["id"]
+    result=get_recommendations_for_user(user_id)
+    print(result)
+    return result
+
 @app.post("/payment")
 async def make_payment(details: PaymentDetails,auth: HTTPAuthorizationCredentials = Depends(security)):
     token = auth.credentials
@@ -382,14 +390,14 @@ def get_knn_recommendations(user_id):
         return []
     allowed_columns = [col for col in matrix.columns if col not in ['cluster_id', 'client_id']]
     user_vector = [user_profile.get(col, 0.0) for col in allowed_columns]
-    print(f"DEBUG: Vectorul final are {len(user_vector)} dimensiuni: {user_vector}")
+   # print(f"DEBUG: Vectorul final are {len(user_vector)} dimensiuni: {user_vector}")
     user_vector_np = np.array(user_vector).astype(float).reshape(1, -1)
     mean_val = np.mean(user_vector_np)
     normalized_user_vector = user_vector_np - mean_val
     neighbors = get_neighbor_spending(normalized_user_vector)
     
-    print(f"Vecinii găsiți pentru userul {user_id}: {neighbors}")
-    print(f"Categorii recomandate pentru userul {user_id}:")
+   # print(f"Vecinii găsiți pentru userul {user_id}: {neighbors}")
+   # print(f"Categorii recomandate pentru userul {user_id}:")
     print(generate_category_recommendations(user_id, neighbors))
     return neighbors
 def get_kmeans_recommendations(user_id):
@@ -404,19 +412,25 @@ def get_kmeans_recommendations(user_id):
         user_vector.append(profile.get(col, 0.0))
     user_vector_np = np.array(user_vector).reshape(1, -1)
     similar_users = get_KMeans_recommandations(user_vector_np)
-    print(f"Categorii recomandate pentru userul {user_id}:")
-    print(generate_category_recommendations(user_id, similar_users))
+    #print(f"Categorii recomandate pentru userul {user_id}:")
+    #print(generate_category_recommendations(user_id, similar_users))
     return similar_users
 def get_recommendations_for_user(user_id):
-    print("KNN Recommendations:")
+    # print("KNN Recommendations:")
     KnnRecomandations = get_knn_recommendations(user_id)
-    print("KMeans Recommendations:")
+   # print("KMeans Recommendations:")
     KMeans=get_kmeans_recommendations(user_id)
-    print(KnnRecomandations)
-    print(KMeans)
-
+    #print(KnnRecomandations)
+   # print(KMeans)
+    result=generate_category_recommendations(user_id, KnnRecomandations)
+    generate_category_recommendations(user_id, KMeans)
+    for category in generate_category_recommendations(user_id, KMeans):
+        if category not in result:
+            result.append(category)
+    return result
+#print_neighbor_spending_from_df([i for i in range(100,160)])
 # populate_payment_types()
 # populate_with_users_and_cards()
 # insert_test_payments(1)
 
-get_recommendations_for_user(1)
+#get_recommendations_for_user(1)

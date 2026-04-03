@@ -1,0 +1,92 @@
+/* Containerul principal pentru secțiunea de recomandări */
+.recommendations-container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* Titlul paginii */
+h2 {
+    text-align: center;
+    color: white;
+    font-size: 28px;
+    margin-bottom: 30px;
+    font-weight: 700;
+}
+
+/* Mesajele de loading / error / listă goală */
+.recommendations-container p {
+    text-align: center;
+    font-size: 16px;
+    color: #64748b;
+    padding: 40px 0;
+}
+
+.error-message {
+    color: #ef4444 !important; /* Roșu pentru erori */
+    font-weight: 500;
+}
+
+/* Lista de carduri - folosim Grid pentru a le așeza elegant pe rânduri */
+.recommendations-list {
+    display: grid;
+    /* Creează coloane care au minim 250px și se extind egal (responsive) */
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 25px; /* Spațiul dintre carduri */
+    list-style: none; /* Ascundem bullet-urile clasice de <li> */
+    padding: 0;
+    margin: 0;
+}
+
+/* Design-ul individual al fiecărui card de recomandare */
+.recommendation-card {
+    background: #ffffff;
+    border-radius: 16px; /* Colțuri rotunjite moderne */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); /* Umbră fină */
+    overflow: hidden; /* Pentru a nu lăsa imaginea să depășească colțurile rotunjite */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #f1f5f9;
+}
+
+/* Efect la trecerea mouse-ului (Hover) */
+.recommendation-card:hover {
+    transform: translateY(-5px); /* Se ridică ușor */
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.1); /* Umbra devine mai pronunțată */
+}
+
+/* STILIZAREA IMAGINILOR - Aici e partea critică */
+.category-image {
+    width: 100%; /* Ocupă toată lățimea cardului */
+    height: 200px; /* SETĂM O ÎNĂLȚIME FIXĂ PENTRU TOATE POZELE */
+    object-fit: cover; /* Taie marginile imaginii astfel încât să umple perfect zona fără să se distorsioneze/turtească */
+    border-bottom: 1px solid #f1f5f9; /* O linie fină sub poză */
+}
+
+/* Titlul categoriei din interiorul cardului */
+.recommendation-card h3 {
+    padding: 20px 15px;
+    margin: 0;
+    font-size: 16px;
+    color: #334155;
+    text-align: center;
+    font-weight: 600;
+    /* Dacă numele e foarte lung, nu îl lăsăm să strice designul */
+    line-height: 1.4;
+}
+.back-button{
+    width:20%;
+}
+/* Responsive design pentru ecrane foarte mici (Telefoane) */
+@media (max-width: 600px) {
+    .recommendations-list {
+        grid-template-columns: 1fr; /* O singură coloană pe mobil */
+    }
+    
+    .category-image {
+        height: 180px; /* Poze puțin mai mici pe telefon */
+    }
+}

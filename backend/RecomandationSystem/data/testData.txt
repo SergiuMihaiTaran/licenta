@@ -1,0 +1,101 @@
+1;Taxicabs and Limousines;Eating Places and Restaurants;Fast Food Restaurants
+34;Eating Places and Restaurants;Fast Food Restaurants;Furniture, Home Furnishings, and Equipment Stores
+37;Discount Stores;Miscellaneous Home Furnishing Stores;Motion Picture Theaters
+38;Eating Places and Restaurants;Furniture, Home Furnishings, and Equipment Stores;Fast Food Restaurants
+39;Eating Places and Restaurants;Fast Food Restaurants;Discount Stores
+40;Eating Places and Restaurants;Fast Food Restaurants;Motion Picture Theaters
+42;Eating Places and Restaurants;Fast Food Restaurants;Motion Picture Theaters
+44;Motion Picture Theaters;Discount Stores;Miscellaneous Home Furnishing Stores
+45;Taxicabs and Limousines;Eating Places and Restaurants;Fast Food Restaurants
+46;Eating Places and Restaurants;Fast Food Restaurants;Discount Stores
+47;Eating Places and Restaurants;Fast Food Restaurants;Discount Stores
+48;Discount Stores;Eating Places and Restaurants;Book Stores
+50;Eating Places and Restaurants;Discount Stores;Fast Food Restaurants
+16;Eating Places and Restaurants;Fast Food Restaurants;Department Stores
+17;Department Stores;Eating Places and Restaurants;Fast Food Restaurants
+19;Department Stores;Motion Picture Theaters;Discount Stores
+20;Department Stores;Discount Stores;Motion Picture Theaters
+21;Department Stores;Eating Places and Restaurants;Amusement Parks, Carnivals, Circuses
+22;Department Stores;Eating Places and Restaurants;Discount Stores
+24;Department Stores;Discount Stores;Eating Places and Restaurants
+27;Department Stores;Motion Picture Theaters;Discount Stores
+28;Eating Places and Restaurants;Department Stores;Fast Food Restaurants
+32;Motion Picture Theaters;Department Stores;Discount Stores
+33;Department Stores;Discount Stores;Shoe Stores
+2;Discount Stores;Miscellaneous Home Furnishing Stores;Book Stores
+3;Digital Goods - Media, Books, Apps;Eating Places and Restaurants;Discount Stores
+4;Eating Places and Restaurants;Fast Food Restaurants;Book Stores
+5;Motion Picture Theaters;Eating Places and Restaurants;Discount Stores
+11;Eating Places and Restaurants;Fast Food Restaurants;Discount Stores
+13;Discount Stores;Amusement Parks, Carnivals, Circuses;Motion Picture Theaters
+14;Motion Picture Theaters;Discount Stores;Digital Goods - Media, Books, Apps
+51;Department Stores;Fast Food Restaurants;Book Stores
+52;Eating Places and Restaurants;Department Stores;Fast Food Restaurants
+53;Department Stores;Book Stores;Hospitals
+55;Eating Places and Restaurants;Fast Food Restaurants;Travel Agencies
+57;Department Stores;Discount Stores;Book Stores
+58;Department Stores;Drinking Places (Alcoholic Beverages);Discount Stores
+59;Department Stores;Discount Stores;Book Stores
+60;Department Stores;Eating Places and Restaurants;Travel Agencies
+61;Eating Places and Restaurants;Department Stores;Fast Food Restaurants
+62;Eating Places and Restaurants;Fast Food Restaurants;Department Stores
+63;Department Stores;Discount Stores;Eating Places and Restaurants
+64;Eating Places and Restaurants;Travel Agencies;Department Stores
+65;Drinking Places (Alcoholic Beverages);Department Stores;Discount Stores
+68;Department Stores;Drinking Places (Alcoholic Beverages);Discount Stores
+73;Department Stores;Book Stores;Discount Stores
+74;Eating Places and Restaurants;Fast Food Restaurants;Travel Agencies
+75;Department Stores;Discount Stores;Motion Picture Theaters
+77;Department Stores;Discount Stores;Fast Food Restaurants
+78;Department Stores;Discount Stores;Package Stores, Beer, Wine, Liquor
+79;Department Stores;Travel Agencies;Discount Stores
+80;Eating Places and Restaurants;Department Stores;Travel Agencies
+81;Department Stores;Eating Places and Restaurants;Travel Agencies
+84;Department Stores;Discount Stores;Book Stores
+86;Department Stores;Motion Picture Theaters;Travel Agencies
+87;Department Stores;Travel Agencies;Eating Places and Restaurants
+89;Drinking Places (Alcoholic Beverages);Antique Shops;Eating Places and Restaurants
+90;Department Stores;Eating Places and Restaurants;Beauty and Barber Shops
+92;Department Stores;Fast Food Restaurants;Discount Stores
+94;Department Stores;Travel Agencies;Hospitals
+96;Department Stores;Travel Agencies;Motion Picture Theaters
+98;Department Stores;Discount Stores;Travel Agencies
+100;Eating Places and Restaurants;Discount Stores;Fast Food Restaurants
+103;Eating Places and Restaurants;Fast Food Restaurants;Amusement Parks, Carnivals, Circuses
+104;Eating Places and Restaurants;Fast Food Restaurants;Department Stores
+106;Department Stores;Eating Places and Restaurants;Motion Picture Theaters
+110;Eating Places and Restaurants;Department Stores;Fast Food Restaurants
+113;Department Stores;Eating Places and Restaurants;Discount Stores
+114;Eating Places and Restaurants;Department Stores;Fast Food Restaurants
+116;Eating Places and Restaurants;Department Stores;Fast Food Restaurants
+118;Department Stores;Eating Places and Restaurants;Fast Food Restaurants
+119;Department Stores;Discount Stores;Book Stores
+120;Department Stores;Discount Stores;Eating Places and Restaurants
+121;Department Stores;Discount Stores;Eating Places and Restaurants
+122;Eating Places and Restaurants;Department Stores;Motion Picture Theaters
+123;Department Stores;Discount Stores;Eating Places and Restaurants
+124;Eating Places and Restaurants;Fast Food Restaurants;Department Stores
+127;Department Stores;Amusement Parks, Carnivals, Circuses;Discount Stores
+128;Department Stores;Discount Stores;Beauty and Barber Shops
+132;Department Stores;Discount Stores;Beauty and Barber Shops
+133;Eating Places and Restaurants;Department Stores;Fast Food Restaurants
+134;Department Stores;Eating Places and Restaurants;Book Stores
+135;Department Stores;Eating Places and Restaurants;Discount Stores
+137;Department Stores;Amusement Parks, Carnivals, Circuses;Discount Stores
+138;Department Stores;Discount Stores;Beauty and Barber Shops
+140;Department Stores;Beauty and Barber Shops;Discount Stores
+141;Department Stores;Discount Stores;Women's Ready-To-Wear Stores
+142;Department Stores;Discount Stores;Sports Apparel, Riding Apparel Stores
+144;Department Stores;Amusement Parks, Carnivals, Circuses;Eating Places and Restaurants
+145;Department Stores;Motion Picture Theaters;Discount Stores
+146;Department Stores;Discount Stores;Eating Places and Restaurants
+147;Department Stores;Drinking Places (Alcoholic Beverages);Book Stores
+148;Department Stores;Beauty and Barber Shops;Fast Food Restaurants
+149;Department Stores;Discount Stores;Family Clothing Stores
+150;Department Stores;Beauty and Barber Shops;Discount Stores
+152;Department Stores;Discount Stores;Fast Food Restaurants
+153;Eating Places and Restaurants;Motion Picture Theaters;Department Stores
+154;Department Stores;Recreational Sports, Clubs;Eating Places and Restaurants
+155;Motion Picture Theaters;Department Stores;Beauty and Barber Shops
+156;Department Stores;Discount Stores;Eating Places and Restaurants
+157;Eating Places and Restaurants;Fast Food Restaurants;Department Stores

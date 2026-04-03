@@ -95,6 +95,8 @@ function Home() {
             <h3>Balance: {values.balance}$</h3>
             <button onClick={(makePayment)}>Make a payment</button>
             <button onClick={(showCardDetails)}> {showAllDetails ? "Hide Details" : "Show Details"}</button>
+            <button onClick={(showRecommendations)}>Show Recommendations</button>
+
           </div>
         }
         {!values.name && <h2>No card added yet.</h2>}
@@ -114,6 +116,9 @@ function Home() {
   function showCardDetails() {
     setShowAllDetails(!showAllDetails);
 
+  }
+  function showRecommendations() {
+    navigate("/Recommendations");
   }
 }
 

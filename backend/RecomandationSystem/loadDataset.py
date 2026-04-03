@@ -95,87 +95,87 @@ recommendable_categories = [
         "Miscellaneous Home Furnishing Stores", "Motion Picture Theaters", 
         "Shoe Stores", "Cosmetic Stores", "Digital Goods - Media, Books, Apps"
     ]
-# def print_neighbor_spending_from_df(neighbor_ids):
-#     """
-#     neighbor_ids: list of IDs returned by KNN
-#     Loads the RAW transaction data to access the 'mcc' column for detailed categorization.
-#     """
-#     # We do NOT use the global df here because it lacks the 'mcc' column.
+def print_neighbor_spending_from_df(neighbor_ids):
+    """
+    neighbor_ids: list of IDs returned by KNN
+    Loads the RAW transaction data to access the 'mcc' column for detailed categorization.
+    """
+    # We do NOT use the global df here because it lacks the 'mcc' column.
 
-#     # 1. Load the JSON categories
-#     json_path = os.path.join('RecomandationSystem', 'data', 'mcc_codes.json')
-#     try:
-#         with open(json_path, 'r') as f:
-#             mcc_categories = json.load(f)
-#     except FileNotFoundError:
-#         print(f"Error: {json_path} not found.")
-#         return
+    # 1. Load the JSON categories
+    json_path = os.path.join('RecomandationSystem', 'data', 'mcc_codes.json')
+    try:
+        with open(json_path, 'r') as f:
+            mcc_categories = json.load(f)
+    except FileNotFoundError:
+        print(f"Error: {json_path} not found.")
+        return
 
-#     # 2. Load Credit Scores
-#     users_path = os.path.join('RecomandationSystem', 'data', 'users_data.csv')
-#     if not os.path.exists(users_path):
-#         print(f"Error: {users_path} not found.")
-#         return
-#     users_df = pd.read_csv(users_path)
-#     credit_map = users_df.set_index('id')['credit_score'].to_dict()
+    # 2. Load Credit Scores
+    users_path = os.path.join('RecomandationSystem', 'data', 'users_data.csv')
+    if not os.path.exists(users_path):
+        print(f"Error: {users_path} not found.")
+        return
+    users_df = pd.read_csv(users_path)
+    credit_map = users_df.set_index('id')['credit_score'].to_dict()
 
-#     # 3. Load the RAW transaction data (which still has the 'mcc' column)
-#     # Adjust this path if your raw data file is named differently or located elsewhere.
-#     raw_data_path = os.path.join('RecomandationSystem', 'data', 'transactions_data.csv')
-#     if not os.path.exists(raw_data_path):
-#          print(f"Error: Raw data file {raw_data_path} not found. Cannot perform detailed MCC analysis.")
-#          return
+    # 3. Load the RAW transaction data (which still has the 'mcc' column)
+    # Adjust this path if your raw data file is named differently or located elsewhere.
+    raw_data_path = os.path.join('RecomandationSystem', 'data', 'transactions_data.csv')
+    if not os.path.exists(raw_data_path):
+         print(f"Error: Raw data file {raw_data_path} not found. Cannot perform detailed MCC analysis.")
+         return
          
-#     # To optimize memory, we only load the columns we need
-#     try:
-#         raw_df = pd.read_csv(raw_data_path, usecols=['client_id', 'mcc', 'amount'])
-#     except ValueError as e:
-#         print(f"Error loading raw data: {e}. Check if 'client_id', 'mcc', and 'amount' exist in {raw_data_path}.")
-#         return
-#     print("\n--- Sample of Raw Transactions for Neighbors ---")
-#     print(raw_df[raw_df['client_id'] == 192].head())
-#     # 4. Filter the raw data for our specific neighbors
-#     temp_df = raw_df[raw_df['client_id'].isin(neighbor_ids)].copy()
-#     if temp_df.empty:
-#         print("\nNo detailed transactions found for these neighbors in the raw dataset.")
-#         return
+    # To optimize memory, we only load the columns we need
+    try:
+        raw_df = pd.read_csv(raw_data_path, usecols=['client_id', 'mcc', 'amount'])
+    except ValueError as e:
+        print(f"Error loading raw data: {e}. Check if 'client_id', 'mcc', and 'amount' exist in {raw_data_path}.")
+        return
+    print("\n--- Sample of Raw Transactions for Neighbors ---")
+    print(raw_df[raw_df['client_id'] == 192].head())
+    # 4. Filter the raw data for our specific neighbors
+    temp_df = raw_df[raw_df['client_id'].isin(neighbor_ids)].copy()
+    if temp_df.empty:
+        print("\nNo detailed transactions found for these neighbors in the raw dataset.")
+        return
     
-#     temp_df['amount'] = temp_df['amount'].str.replace('$', '', regex=False).astype(str)
-#     temp_df['amount'] = temp_df['amount'].str.replace('-', '', regex=False).astype(float)
+    temp_df['amount'] = temp_df['amount'].str.replace('$', '', regex=False).astype(str)
+    temp_df['amount'] = temp_df['amount'].str.replace('-', '', regex=False).astype(float)
 
-#     # Force conversion to a standard float64 (NumPy backed, not Arrow backed)
-#     # This prevents the Arrow string array error during unstack
+    # Force conversion to a standard float64 (NumPy backed, not Arrow backed)
+    # This prevents the Arrow string array error during unstack
     
-#     temp_df['amount'] = pd.to_numeric(temp_df['amount'], errors='coerce').astype('float64')
+    temp_df['amount'] = pd.to_numeric(temp_df['amount'], errors='coerce').astype('float64')
     
 
-#     # Map the MCC to the extended category
-#     temp_df['extended_category'] = temp_df['mcc'].astype(str).map(mcc_categories).fillna("Other/Unknown")
+    # Map the MCC to the extended category
+    temp_df['extended_category'] = temp_df['mcc'].astype(str).map(mcc_categories).fillna("Other/Unknown")
     
-#     # 6. Aggregate
-#     # Drop NA values that might have been created by coercion just to be safe
-#     clean_temp_df = temp_df.dropna(subset=['amount'])
+    # 6. Aggregate
+    # Drop NA values that might have been created by coercion just to be safe
+    clean_temp_df = temp_df.dropna(subset=['amount'])
     
-#     spending_summary = clean_temp_df.groupby(['client_id', 'extended_category'])['amount'].sum().unstack(fill_value=0.0)
-#     # 7. Print Output
-#     print("\n" + "="*75)
-#     print("DETAILED ANALYSIS: Neighbor Profiles (Source: mcc_codes.json)")
-#     print("="*75)
+    spending_summary = clean_temp_df.groupby(['client_id', 'extended_category'])['amount'].sum().unstack(fill_value=0.0)
+    # 7. Print Output
+    print("\n" + "="*75)
+    print("DETAILED ANALYSIS: Neighbor Profiles (Source: mcc_codes.json)")
+    print("="*75)
 
-#     for neighbor_id in neighbor_ids:
-#         c_score = credit_map.get(neighbor_id, "N/A")
-#         print(f"\n> SIMILAR NEIGHBOR ID: {neighbor_id} | CREDIT SCORE: {c_score}")
-#         print("-" * 60)
+    for neighbor_id in neighbor_ids:
+        c_score = credit_map.get(neighbor_id, "N/A")
+        print(f"\n> SIMILAR NEIGHBOR ID: {neighbor_id} | CREDIT SCORE: {c_score}")
+        print("-" * 60)
 
-#         if neighbor_id in spending_summary.index:
-#             user_spending = spending_summary.loc[neighbor_id].sort_values(ascending=False)
+        if neighbor_id in spending_summary.index:
+            user_spending = spending_summary.loc[neighbor_id].sort_values(ascending=False)
             
-#             for cat, amt in user_spending.items():
-#                 if amt > 0:
-#                     print(f"  {cat.ljust(45)}: {amt:10.2f} USD")
-#         else:
-#             print("  (!) Transaction data missing for this ID.")
-#         print("-" * 60)
+            for cat, amt in user_spending.items():
+                if amt > 0:
+                    print(f"  {cat.ljust(45)}: {amt:10.2f} USD")
+        else:
+            print("  (!) Transaction data missing for this ID.")
+        print("-" * 60)
 def get_mcc_and_transactions():
     mcc_path = os.path.join('RecomandationSystem', 'data', 'mcc_codes.json')
     try:
