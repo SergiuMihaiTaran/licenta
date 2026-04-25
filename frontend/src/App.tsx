@@ -6,6 +6,7 @@ import Login from "./components/Login/Login";
 import ProtectedRoute from "./ProtectedRouter";
 import Register from "./components/Register/Register";
 import MakePayment from "./components/MakePayment/MakePayment";
+import Recommendations from "./components/Recommendations/Recommendations";
 function App() {
   return (
     <Router>
@@ -34,6 +35,14 @@ function App() {
           element={
             <ProtectedRoute>
               <AddCard />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/Recommendations" 
+          element={
+            <ProtectedRoute>
+              <Recommendations />
             </ProtectedRoute>
           } 
         />

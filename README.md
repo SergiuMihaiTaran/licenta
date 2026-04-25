@@ -43,3 +43,22 @@ Silhouette Score pentru k=5: 0.2117
 Silhouette Score pentru k=6: 0.2113
 Silhouette Score pentru k=7: 0.1737
 Silhouette Score pentru k=8: 0.1569
+
+RAPORT FINAL LICENȚĂ: k-NN
+
+==================================================
+
+Precision@3: 0.2400
+
+Recall@3:    0.2400
+
+MRR:         0.4200
+
+AUC:         1.0000 (Capacitate de discriminare)
+
+RAPORT FINAL LICENȚĂ: k-Means
+==================================================
+Precision@3: 0.2033
+Recall@3:    0.2033
+MRR:         0.3750
+AUC:         1.0000 (Capacitate de discriminare)

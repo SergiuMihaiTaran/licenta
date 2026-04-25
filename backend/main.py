@@ -8,7 +8,7 @@ from RecomandationSystem.KNNClasification import get_neighbor_spending, get_neig
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 import pandas as pd
-from RecomandationSystem.loadDataset import  generate_category_recommendations, loadDataset, get_KMeans_recommandations
+from RecomandationSystem.loadDataset import  generate_category_recommendations, loadDataset, get_KMeans_recommandations, print_neighbor_spending_from_df
 import sqlalchemy
 import joblib
 from faker import Faker 
@@ -22,7 +22,8 @@ from sqlalchemy import or_
 import jwt
 secret="secret"
 algorithm="HS256"
-
+users_data_location='RecomandationSystem/data/users_data.csv'
+payments_data_location='RecomandationSystem/data/transactions_data_categorized.csv'
 def get_age_from_dateOfBirth(dob_str):
     age = 0
     if dob_str:
@@ -122,7 +123,7 @@ async def register(user: UserCreate):
         db.close()
         raise HTTPException(status_code=400, detail="Email already registered")
     
-    new_user = UserDB(phone=user.phone, email=user.email, password=user.password)
+    new_user = UserDB(phone=user.phone, email=user.email, password=user.password,credit_score=int(user.credit_score))
     db.add(new_user)
     db.commit()
     db.close()
@@ -181,6 +182,14 @@ async def get_card_minimal_info(auth: HTTPAuthorizationCredentials = Depends(sec
     result = {"balance": cards.balance, "name": cards.name, "number": cards.number[-4:]} if cards else {}
     db.close()
     return result
+@app.get("/recommendations")
+async def get_recommendations(auth: HTTPAuthorizationCredentials = Depends(security)):
+    token = auth.credentials
+    user_id = jwt.decode(token, secret, algorithms=[algorithm])["id"]
+    result=get_user_profile_csv(user_id)
+    print(result)
+    return result
+
 @app.post("/payment")
 async def make_payment(details: PaymentDetails,auth: HTTPAuthorizationCredentials = Depends(security)):
     token = auth.credentials
@@ -339,6 +348,15 @@ def insert_test_payments(user_id: int):
     db.commit()
     print(f"Am inserat {len(test_data)} tranzacții pentru user {user_id}")
     db.close()
+# def get_age_from_dateOfBirth(dob_string):
+#     """Calculează vârsta dintr-un string de tip dată (ex: '1990-05-15')."""
+#     try:
+#         dob = datetime.strptime(dob_string, "%Y-%m-%d")
+#         today = datetime.today()
+#         return today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+#     except:
+#         return 0
+
 def get_user_profile(user_id):
     db = SessionLocal()
     try:
@@ -374,7 +392,7 @@ def get_user_profile(user_id):
 def get_knn_recommendations(user_id):
     global matrix
     matrix = loadDataset(user_id)
-    user_profile = get_user_profile(user_id)
+    user_profile = get_user_profile_csv(user_id)
     
     print(f"Profilul de cheltuieli pentru user {user_id}: {user_profile}")
     if not user_profile:
@@ -382,19 +400,19 @@ def get_knn_recommendations(user_id):
         return []
     allowed_columns = [col for col in matrix.columns if col not in ['cluster_id', 'client_id']]
     user_vector = [user_profile.get(col, 0.0) for col in allowed_columns]
-    print(f"DEBUG: Vectorul final are {len(user_vector)} dimensiuni: {user_vector}")
+   # print(f"DEBUG: Vectorul final are {len(user_vector)} dimensiuni: {user_vector}")
     user_vector_np = np.array(user_vector).astype(float).reshape(1, -1)
     mean_val = np.mean(user_vector_np)
     normalized_user_vector = user_vector_np - mean_val
     neighbors = get_neighbor_spending(normalized_user_vector)
     
-    print(f"Vecinii găsiți pentru userul {user_id}: {neighbors}")
-    print(f"Categorii recomandate pentru userul {user_id}:")
+   # print(f"Vecinii găsiți pentru userul {user_id}: {neighbors}")
+   # print(f"Categorii recomandate pentru userul {user_id}:")
     print(generate_category_recommendations(user_id, neighbors))
     return neighbors
 def get_kmeans_recommendations(user_id):
     global matrix
-    profile = get_user_profile(user_id)
+    profile = get_user_profile_csv(user_id)
     if not profile:
         print("Userul nu are date suficiente.")
         return []
@@ -404,19 +422,158 @@ def get_kmeans_recommendations(user_id):
         user_vector.append(profile.get(col, 0.0))
     user_vector_np = np.array(user_vector).reshape(1, -1)
     similar_users = get_KMeans_recommandations(user_vector_np)
-    print(f"Categorii recomandate pentru userul {user_id}:")
-    print(generate_category_recommendations(user_id, similar_users))
+    #print(f"Categorii recomandate pentru userul {user_id}:")
+    #print(generate_category_recommendations(user_id, similar_users))
     return similar_users
 def get_recommendations_for_user(user_id):
-    print("KNN Recommendations:")
+    # print("KNN Recommendations:")
     KnnRecomandations = get_knn_recommendations(user_id)
-    print("KMeans Recommendations:")
+   # print("KMeans Recommendations:")
     KMeans=get_kmeans_recommendations(user_id)
-    print(KnnRecomandations)
-    print(KMeans)
+    #print(KnnRecomandations)
+   # print(KMeans)
+    result=generate_category_recommendations(user_id, KnnRecomandations)
+    generate_category_recommendations(user_id, KMeans)
+    for category in generate_category_recommendations(user_id, KMeans):
+        # if category not in result:
+        result.append(category)
+    return result
 
+def clean_val(val):
+    """Curăță valorile de tip string ($1,234.50) și le convertește în float."""
+    if isinstance(val, str):
+        return float(val.replace('$', '').replace(',', ''))
+    return float(val)
+
+def clean_val(val):
+    """Curăță valorile string ($1,234.50) și le convertește în float."""
+    if isinstance(val, str):
+        return float(val.replace('$', '').replace(',', ''))
+    return float(val)
+
+def get_user_profile_csv(user_id, users_path=users_data_location, trans_path=payments_data_location):
+    # 1. Încărcăm datele utilizatorului
+    users_df = pd.read_csv(users_path)
+    user_row = users_df[users_df['id'] == user_id]
+    
+    if user_row.empty:
+        return None
+    
+    user = user_row.iloc[0]
+
+    # 2. Formăm profilul de bază din datele demografice
+    profile = {
+        "current_age": int(user['current_age']),
+        "yearly_income": clean_val(user['yearly_income']),
+        "total_debt": clean_val(user['total_debt']),
+        "credit_score": int(user['credit_score'])
+    }
+
+    # 3. Încărcăm tranzacțiile deja categorisite
+    # Citim doar client_id, amount și category pentru eficiență
+    trans_df = pd.read_csv(trans_path, usecols=['client_id', 'amount', 'category'])
+    client_trans = trans_df[trans_df['client_id'] == user_id]
+
+    # 4. Agregăm cheltuielile pe categorii
+    if not client_trans.empty:
+        # Grupăm după coloana 'category' și sumăm coloana 'amount'
+        # (Nu mai e nevoie de clean_val aici dacă amount e deja numeric în fișier)
+        category_sums = client_trans.groupby('category')['amount'].sum()
+
+        # Adăugăm fiecare categorie ca o cheie în dicționarul profile
+        for category, total in category_sums.items():
+            profile[category] = float(total)
+
+    return profile
+#print(get_recommendations_for_user(37))
+def temp():
+    import pandas as pd
+    import numpy as np
+    import os
+
+    # 1. Încărcare date
+    file_path = 'RecomandationSystem/data/testData.txt'
+    real_df_raw = pd.read_csv(file_path, sep=';', header=None, names=['id', 'c1', 'c2', 'c3'])
+    gt_dict = real_df_raw.set_index('id').T.to_dict('list')
+    
+    # Avem nevoie de lista tuturor categoriilor posibile pentru a identifica itemii "negativi"
+    all_categories = pd.read_csv('RecomandationSystem/data/transactions_data_categorized.csv')['category'].unique().tolist()
+
+    def calculate_full_metrics(algo_func, name):
+        results = {
+            'precision': [], 'recall': [], 'mrr': [], 'auc': []
+        }
+        
+        user_ids = list(gt_dict.keys())[:100]
+        
+        for uid in user_ids:
+            real_cats = [str(c).strip() for c in gt_dict[uid]]
+            try:
+                pred_cats = algo_func(uid)
+                actual_set = set(real_cats)
+                pred_set = set(pred_cats[:3])
+                
+                hits = len(pred_set & actual_set)
+                results['precision'].append(hits / 3.0)
+                results['recall'].append(hits / len(actual_set))
+                
+                # --- CALCUL MRR ---
+                rr = 0
+                for i, p in enumerate(pred_cats[:3]):
+                    if p in actual_set:
+                        rr = 1 / (i + 1)
+                        break
+                results['mrr'].append(rr)
+
+                # --- CALCUL AUC (Simplified for RecSys) ---
+                # Formula: (Nr. perechi corect ordonate) / (Total perechi posibil relevante vs irelevante)
+                # Un item relevant e mai "sus" decât unul irelevant?
+                negative_items = list(set(all_categories) - actual_set)
+                
+                auc_user = 0
+                if actual_set and negative_items:
+                    found_relevant = 0
+                    for rel_item in actual_set:
+                        # Verificăm poziția în lista extinsă returnată de algoritm
+                        # (Presupunem că algoritmul poate returna o listă mai lungă de scoruri)
+                        try:
+                            rank_rel = pred_cats.index(rel_item)
+                        except ValueError:
+                            rank_rel = 999 # Penalizare dacă nu e în listă
+                        
+                        # Luăm un eșantion de itemi negativi pentru viteză
+                        neg_samples = np.random.choice(negative_items, min(20, len(negative_items)), replace=False)
+                        for neg_item in neg_samples:
+                            try:
+                                rank_neg = pred_cats.index(neg_item)
+                            except ValueError:
+                                rank_neg = 1000
+                            
+                            if rank_rel < rank_neg:
+                                auc_user += 1
+                        found_relevant += len(neg_samples)
+                    
+                    results['auc'].append(auc_user / found_relevant if found_relevant > 0 else 0)
+
+            except: continue
+
+        print(f"\n" + "="*50)
+        print(f"RAPORT FINAL LICENȚĂ: {name}")
+        print(f"="*50)
+        print(f"Precision@3: {np.mean(results['precision']):.4f}")
+        print(f"Recall@3:    {np.mean(results['recall']):.4f}")
+        print(f"MRR:         {np.mean(results['mrr']):.4f}")
+        print(f"AUC:         {np.mean(results['auc']):.4f} (Capacitate de discriminare)")
+
+    # Wrapper-e (Knn și KMeans)
+    calculate_full_metrics(lambda u: generate_category_recommendations(u, get_knn_recommendations(u)), "k-NN")
+    calculate_full_metrics(lambda u: generate_category_recommendations(u, get_kmeans_recommendations(u)), "k-Means")
+
+# Apelează funcția
+# temp()
+#print_neighbor_spending_from_df([i for i in range(100,160)])
 # populate_payment_types()
 # populate_with_users_and_cards()
 # insert_test_payments(1)
-
-get_recommendations_for_user(1)
+temp()
+#get_recommendations_for_user(1)
