@@ -71,7 +71,6 @@ function Recommendations() {
                         {recommendations.map((category, index) => {
 
                             const fileName = categoryImageMap[category] || "default.png";
-
                             return (
                                 <li key={index} className="recommendation-card">
                                     <img
