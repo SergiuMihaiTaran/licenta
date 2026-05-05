@@ -204,13 +204,22 @@ def generate_category_recommendations(target_user_id, neighbor_ids):
     if temp_df.empty:
         return []
     temp_df = clean_data_for_recommendations(temp_df)
-    temp_df['detailed_category'] = temp_df['mcc'].astype(str).map(mcc_categories).fillna("Other/Unknown")
+    temp_df['detailed_category'] = (
+    temp_df['mcc']
+    .astype(float)        # Ensure it's a float first
+    .fillna(0)            # Handle empty values
+    .astype(int)          # Convert 5411.0 to 5411
+    .astype(str)          # Convert to "5411"
+    .map(mcc_categories)  # Map against your JSON
+    .fillna("Other/Unknown")
+)
     pivot_df = temp_df.groupby(['client_id', 'detailed_category'])['amount'].sum().unstack(fill_value=0.0)
     if target_user_id in pivot_df.index:
         target_profile = pivot_df.loc[target_user_id]
     else:
         target_profile = pd.Series(dtype=float)
     valid_neighbors = pivot_df.index.intersection(neighbor_ids)
+    
     if valid_neighbors.empty:
         return []
     neighbors_profiles = pivot_df.loc[valid_neighbors]
@@ -223,5 +232,6 @@ def generate_category_recommendations(target_user_id, neighbor_ids):
             score = avg_neighbor_spend - target_user_spend
             if score > 0:
                 recommendations[category] = score
+    
     top_recommendations = sorted(recommendations.items(), key=lambda x: x[1], reverse=True)[:3]
     return [cat for cat, score in top_recommendations]

@@ -24,6 +24,3 @@ dist-ssr
 *.sw?
 *.db
 *.csv
-*.json
-*.joblib
-*.pyc
